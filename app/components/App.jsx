@@ -1,5 +1,12 @@
+import _ from 'lodash';
 import React from 'react';
 import ParkingLotDashboard from './ParkingLotDashboard.jsx';
+
+const styles = {
+  default: {
+    marginTop: 50
+  }
+};
 
 export default class App extends React.Component {
 
@@ -9,7 +16,9 @@ export default class App extends React.Component {
 
   render() {
     return (
-      <ParkingLotDashboard />
+      <div className="ui container" style={_.extend({}, styles.default, this.props.style)}>
+        <ParkingLotDashboard />
+      </div>
     );
   }
 

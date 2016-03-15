@@ -1,3 +1,5 @@
+import './semantic/dist/semantic.css';
+import './semantic/dist/semantic.min.js';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
