@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import React from 'react';
 import ParkingLotDashboard from './ParkingLotDashboard.jsx';
+import EntryScreen from './EntryScreen.jsx';
 
 const styles = {
   default: {
@@ -17,7 +18,9 @@ export default class App extends React.Component {
   render() {
     return (
       <div className="ui container" style={_.extend({}, styles.default, this.props.style)}>
-        <ParkingLotDashboard />
+        { componentType === 'DASHBOARD' ?
+          <ParkingLotDashboard /> :
+          <EntryScreen /> }
       </div>
     );
   }
