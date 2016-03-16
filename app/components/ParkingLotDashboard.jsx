@@ -338,6 +338,7 @@ export default class ParkingLotDashboard extends React.Component {
                 <td>
                   <div className="ui icon buttons">
                     <button className="ui basic red button"
+                      data-content="Delete place"
                       style={_.extend({}, styles.toolbarBtn)}
                       onClick={_.partial(this.deletePlace, placeName)}>
                       <i className="trash icon"></i>
