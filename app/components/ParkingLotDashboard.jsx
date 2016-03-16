@@ -329,7 +329,7 @@ export default class ParkingLotDashboard extends React.Component {
 
       return (
         <tbody>
-          {mapObject(places, (placeName, placeData, i) => {
+          {mapObject(places || {}, (placeName, placeData, i) => {
             return (
               <tr key={i}>
                 <td>{placeName}</td>
@@ -367,7 +367,7 @@ export default class ParkingLotDashboard extends React.Component {
               <input type="text" ref="newPlaceCategory"/>
             </td>
           </tr>
-          {mapObject(places, (placeName, placeData, i) => {
+          {mapObject(places || {}, (placeName, placeData, i) => {
             return (
               <tr key={i}>
                 <td>{placeName}</td>
