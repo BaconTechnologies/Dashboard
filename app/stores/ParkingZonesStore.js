@@ -8,6 +8,7 @@ class ParkingLotStore {
 
   constructor() {
     this.zones = [];
+    this.places = {};
     this.suggestedZone = null;
 
     db.on('value', (snapshot) => {
@@ -16,6 +17,7 @@ class ParkingLotStore {
         pair[1].id = pair[0];
         return pair[1];
       });
+      this.places = data.places;
       this.suggestedZone = _.find(this.zones, {id: data.suggestedZone});
       this.emitChange();
     });

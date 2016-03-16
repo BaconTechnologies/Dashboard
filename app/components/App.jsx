@@ -5,7 +5,8 @@ import EntryScreen from './EntryScreen.jsx';
 
 const styles = {
   default: {
-    marginTop: 50
+    marginTop: 50,
+    marginBottom: 100
   }
 };
 
