@@ -126,7 +126,7 @@ export default class ParkingLotDashboard extends React.Component {
   deleteParkingZone = (zoneName) => {
     $.ajax({
       method: 'DELETE',
-      url: `http://localhost:8000/api/zone/${zoneName}`,
+      url: `https://enigmatic-brushlands-35263.herokuapp.com/api/zone/${zoneName}`,
     });
   }
 
@@ -208,7 +208,7 @@ export default class ParkingLotDashboard extends React.Component {
 
     $.ajax({
       method: 'POST',
-      url: 'http://localhost:8000/api/zone',
+      url: 'https://enigmatic-brushlands-35263.herokuapp.com/api/zone',
       contentType: 'application/json',
       data: JSON.stringify(zoneData),
       success: (data, status, xhr) => {
@@ -269,7 +269,7 @@ export default class ParkingLotDashboard extends React.Component {
 
     $.ajax({
       method: 'PUT',
-      url: `http://localhost:8000/api/zone/${zoneId}`,
+      url: `https://enigmatic-brushlands-35263.herokuapp.com/api/zone/${zoneId}`,
       contentType: 'application/json',
       data: JSON.stringify(zoneData),
       success: (data, status, xhr) => {
