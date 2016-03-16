@@ -2,6 +2,7 @@ import $ from 'jquery';
 import React from 'react';
 import ParkingZonesStore from '../stores/ParkingZonesStore.js';
 
+// const baseAPIUrl = 'http://localhost:8000';
 const baseAPIUrl = 'https://enigmatic-brushlands-35263.herokuapp.com';
 
 const styles = {
@@ -9,6 +10,12 @@ const styles = {
     marginLeft: 2
   }
 };
+
+function chooseFile(name) {
+  var chooser = $(name);
+  chooser.unbind('change');
+  chooser.trigger('click');
+}
 
 function mapObject(object, callback) {
   return Object.keys(object).map(function (key, i) {
@@ -47,6 +54,7 @@ export default class ParkingLotDashboard extends React.Component {
       <div>
         <h1 className="centered">Parking Lot Dashboard</h1>
 
+        <input style={{display: "none"}} id="fileDialog" type="file" onChange={this.importCSVData} accept=".csv"/>
         <div className="ui icon buttons" ref="toolbar">
           <button className="ui basic blue button"
             onClick={this.editNewParkingZone}
@@ -55,6 +63,7 @@ export default class ParkingLotDashboard extends React.Component {
           </button>
           <button className="ui basic yellow button"
             style={_.extend({}, styles.toolbarBtn)}
+            onClick={this.promptForCSVFile}
             data-content="New parking zone from csv">
             <i className="file outline icon"></i>
           </button>
@@ -429,4 +438,72 @@ export default class ParkingLotDashboard extends React.Component {
       });
     }
 
+    promptForCSVFile = () => {
+      chooseFile('#fileDialog');
+    }
+
+    importCSVData = () => {
+      var file = $('#fileDialog').get(0).files[0];
+      var textType = /text.*/;
+
+      if (file.type.match(textType)) {
+        var reader = new FileReader();
+
+        reader.onload = (e) => {
+          this.createZonesFromCSVData(reader.result);
+        }
+
+        reader.readAsText(file);
+      } else {
+        fileDisplayArea.innerText = "File not supported!"
+      }
   }
+
+  createZonesFromCSVData = (rawcsv) => {
+    let lines = rawcsv.split('\n');
+    lines.splice(lines.length - 1, 1);
+    let zonesData = {};
+
+    _.each(lines, function(line) {
+      let tokens = line.split(',');
+      let zoneID = tokens[0];
+      let parkingSpot = tokens[1];
+      let occupied = tokens[2] === 'Ocupado';
+
+      if(_.isUndefined(zonesData[zoneID])) {
+        zonesData[zoneID] = {};
+      }
+
+      const zone = zonesData[zoneID];
+
+      if (!_.isUndefined(zone.capacity)) {
+        zone.capacity += 1;
+      } else{
+        zone.capacity = 1;
+      }
+
+      if (occupied) {
+        if (_.isUndefined(zone.occupancy)) {
+          zone.occupancy = 1;
+        } else {
+          zone.occupancy += 1;
+        }
+      }
+
+      if (_.isUndefined(zone.occupancy)) {
+        zone.occupancy = 0;
+      }
+
+      zone.name = `Zona ${zoneID}`;
+    });
+
+    $.ajax({
+      method: 'PUT',
+      url: `${baseAPIUrl}/api/zone`,
+      contentType: 'application/json',
+      data: JSON.stringify(zonesData)
+    });
+
+  }
+
+}
