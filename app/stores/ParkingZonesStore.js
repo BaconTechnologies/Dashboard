@@ -8,18 +8,15 @@ class ParkingLotStore {
 
   constructor() {
     this.zones = [];
-    this.nextToPark = null;
+    this.suggestedZone = null;
 
-    db.child('zones').on('value', (snapshot) => {
-      this.zones = _.values(_.mapValues(snapshot.val(), function(value, key) {
-        value.name = key;
-        return value;
-      }));
-      this.emitChange();
-    });
-
-    db.child('nextToPark').on('value', (snapshot) => {
-      this.nextToPark = snapshot.val();
+    db.on('value', (snapshot) => {
+      const data = snapshot.val();
+      this.zones = _.map(_.toPairs(data.zones), function(pair) {
+        pair[1].id = pair[0];
+        return pair[1];
+      });
+      this.suggestedZone = _.find(this.zones, {id: data.suggestedZone});
       this.emitChange();
     });
   }

@@ -54,7 +54,9 @@ export default class ParkingLotDashboard extends React.Component {
         <table className="ui celled table">
           <thead>
             <tr>
+              <th>Zone ID</th>
               <th>Zone Name</th>
+              <th>Availability</th>
               <th>Capacity</th>
               <th>Occupancy</th>
               <th></th>
@@ -66,14 +68,15 @@ export default class ParkingLotDashboard extends React.Component {
               null
             }
             {zones.map((z, i) => {
-              return z.name === this.state.existingParkingZoneInEdition ?
+              return z.id === this.state.existingParkingZoneInEdition ?
               this.renderExistingParkingZoneEditor(z, i) :
               this.renderParkingZoneRow(z, i)
             })}
           </tbody>
           <tfoot>
             <tr>
-              <th>Totals</th>
+              <th colSpan="2"><b>Totals</b></th>
+              <th>{this.getAvailabilityTotal()}</th>
               <th>{this.getCapacityTotal()}</th>
               <th>{this.getOccupancyTotal()}</th>
               <th></th>
@@ -102,15 +105,22 @@ export default class ParkingLotDashboard extends React.Component {
     }, 0);
   }
 
-  $getAllPopups = () => {
-    return $('[data-content]');
-  }
-
   getOccupancyTotal = () => {
     const { zones } = this.state;
     return _.reduce(zones, function(result, value, key) {
       return result += value.occupancy;
     }, 0);
+  }
+
+  getAvailabilityTotal = () => {
+    const { zones } = this.state;
+    return _.reduce(zones, function(result, value, key) {
+      return result += (value.capacity - value.occupancy);
+    }, 0);
+  }
+
+  $getAllPopups = () => {
+    return $('[data-content]');
   }
 
   deleteParkingZone = (zoneName) => {
@@ -123,18 +133,20 @@ export default class ParkingLotDashboard extends React.Component {
   renderParkingZoneRow = (zone, i) => {
     return (
       <tr key={i}>
+        <td>{zone.id}</td>
         <td>{zone.name}</td>
+        <td>{zone.capacity - zone.occupancy}</td>
         <td>{zone.capacity}</td>
         <td>{zone.occupancy}</td>
         <td>
           <div className="ui icon buttons">
             <button className="ui violet basic button"
-              onClick={_.partial(this.editExistingParkingZone, zone.name)}
+              onClick={_.partial(this.editExistingParkingZone, zone.id)}
               data-content="Modify zone">
               <i className="edit icon"></i>
             </button>
             <button className="ui red basic button"
-              onClick={_.partial(this.deleteParkingZone, zone.name)}
+              onClick={_.partial(this.deleteParkingZone, zone.id)}
               style={_.extend({}, styles.toolbarBtn)}
               data-content="Delete parking zone">
               <i className="trash outline icon"></i>
@@ -157,8 +169,12 @@ export default class ParkingLotDashboard extends React.Component {
     return (
       <tr className="ui form">
         <td>
+          <input type="text" ref="newZoneId"/>
+        </td>
+        <td>
           <input type="text" ref="newZoneName"/>
         </td>
+        <td></td>
         <td>
           <input type="number" ref="newZoneCapacity"/>
         </td>
@@ -184,15 +200,11 @@ export default class ParkingLotDashboard extends React.Component {
 
   createNewParkingZone = () => {
     const zoneData = {
+      id: $(this.refs.newZoneId).val(),
       name: $(this.refs.newZoneName).val(),
       capacity: parseInt($(this.refs.newZoneCapacity).val(), 10),
       occupancy: parseInt($(this.refs.newZoneOccupancy).val(), 10)
     };
-
-    if (this.zoneAlreadyExists(zoneData.name)) {
-      alert('Zone with that name already exists, choose a different one.');
-      return;
-    }
 
     $.ajax({
       method: 'POST',
@@ -208,8 +220,9 @@ export default class ParkingLotDashboard extends React.Component {
     });
   }
 
-  editExistingParkingZone = (zoneName) => {
-    this.setState({ existingParkingZoneInEdition: zoneName });
+  editExistingParkingZone = (zoneId) => {
+    console.log(zoneId);
+    this.setState({ existingParkingZoneInEdition: zoneId });
   }
 
   cancelExistingParkingZoneEdition = () => {
@@ -219,9 +232,11 @@ export default class ParkingLotDashboard extends React.Component {
   renderExistingParkingZoneEditor = (zone, i) => {
     return (
       <tr className="ui form" key={i}>
+        <td>{zone.id}</td>
         <td>
           <input type="text" defaultValue={zone.name} ref="existingZoneName"/>
         </td>
+        <td></td>
         <td>
           <input type="number" defaultValue={zone.capacity} ref="existingZoneCapacity"/>
         </td>
@@ -231,10 +246,11 @@ export default class ParkingLotDashboard extends React.Component {
         <td>
           <div className="ui icon buttons">
             <button className="ui basic green button"
-              onClick={_.partial(this.modifyExistingParkingZone, zone)}>
+              onClick={_.partial(this.modifyExistingParkingZone, zone.id)}>
               <i className="save icon"></i>
             </button>
             <button className="ui basic orange button"
+              style={_.extend({}, styles.toolbarBtn)}
               onClick={this.cancelExistingParkingZoneEdition}>
               <i className="remove icon"></i>
             </button>
@@ -244,43 +260,25 @@ export default class ParkingLotDashboard extends React.Component {
     );
   }
 
-  modifyExistingParkingZone = (oldValues) => {
+  modifyExistingParkingZone = (zoneId) => {
     const zoneData = {
       name: $(this.refs.existingZoneName).val(),
       capacity: parseInt($(this.refs.existingZoneCapacity).val(), 10),
       occupancy: parseInt($(this.refs.existingZoneOccupancy).val(), 10)
     };
 
-    if ((zoneData.name !== oldValues.name) && (this.zoneAlreadyExists(zoneData.name))) {
-      alert('Zone with that name already exists, choose a different one.');
-      return;
-    }
-
     $.ajax({
-      method: 'DELETE',
-      url: `http://localhost:8000/api/zone/${oldValues.name}`,
+      method: 'PUT',
+      url: `http://localhost:8000/api/zone/${zoneId}`,
+      contentType: 'application/json',
+      data: JSON.stringify(zoneData),
       success: (data, status, xhr) => {
-        $.ajax({
-          method: 'POST',
-          url: 'http://localhost:8000/api/zone',
-          contentType: 'application/json',
-          data: JSON.stringify(zoneData),
-          success: (data, status, xhr) => {
-            this.setState({ existingParkingZoneInEdition: null });
-          },
-          error: function(xhr, status, err) {
-            console.error('TODO: Inform user of mistakes');
-          }
-        });
+        this.setState({ existingParkingZoneInEdition: null });
       },
-      error: (xhr, status, err) => {
+      error: function(xhr, status, err) {
         console.error('TODO: Inform user of mistakes');
       }
-    })
-  }
-
-  zoneAlreadyExists = (zoneName) => {
-    return _.findIndex(this.state.zones, { name: zoneName }) !== -1;
+    });
   }
 
 }

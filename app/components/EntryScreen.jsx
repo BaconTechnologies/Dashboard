@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import React from 'react';
 import ParkingZonesStore from '../stores/ParkingZonesStore.js';
 
@@ -17,14 +18,18 @@ export default class EntryScreen extends React.Component {
   }
 
   render() {
-    const { nextToPark } = this.state;
+    const { suggestedZone } = this.state;
 
     return (
       <div>
-        <h2>Nombre de la institución</h2>
-
-        <h4>Favor de estacionarse en</h4>
-        <h1>{nextToPark}</h1>
+        <h2 className="ui horizontal divider header">Parking Brain</h2>
+        <div className="ui center aligned segment">
+          <h3>Favor de estacionarse en</h3>
+          <h1 className="parking-zone-sign"
+            style={{fontSize: 65}}>
+            {_.get(suggestedZone, 'name', '')}
+          </h1>
+        </div>
       </div>
     );
   }
@@ -34,9 +39,9 @@ export default class EntryScreen extends React.Component {
   }
 
   getStateFromStores = () => {
-    const { nextToPark } = ParkingZonesStore.getState();
+    const { suggestedZone } = ParkingZonesStore.getState();
     return {
-      nextToPark: nextToPark
+      suggestedZone: suggestedZone
     };
   }
 
