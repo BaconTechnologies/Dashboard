@@ -2,7 +2,7 @@ import $ from 'jquery';
 import React from 'react';
 import ParkingZonesStore from '../stores/ParkingZonesStore.js';
 
-const baseAPIUrl = 'http://localhost:8000';
+const baseAPIUrl = 'https://desolate-sands-40235.herokuapp.com';
 
 const styles = {
   toolbarBtn: {
