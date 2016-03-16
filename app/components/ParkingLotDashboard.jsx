@@ -3,8 +3,8 @@ import React from 'react';
 import ParkingZonesStore from '../stores/ParkingZonesStore.js';
 import ZonePieChart from './ZonePieChart.jsx';
 
-const baseAPIUrl = 'http://localhost:8000';
-// const baseAPIUrl = 'https://enigmatic-brushlands-35263.herokuapp.com';
+// const baseAPIUrl = 'http://localhost:8000';
+const baseAPIUrl = 'https://enigmatic-brushlands-35263.herokuapp.com';
 
 const styles = {
   toolbarBtn: {
