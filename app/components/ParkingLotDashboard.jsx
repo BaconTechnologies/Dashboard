@@ -257,7 +257,7 @@ export default class ParkingLotDashboard extends React.Component {
 
       $.ajax({
         method: 'POST',
-        url: '${baseAPiUrl}/api/zone',
+        url: `${baseAPIUrl}/api/zone`,
         contentType: 'application/json',
         data: JSON.stringify(zoneData),
         success: (data, status, xhr) => {
