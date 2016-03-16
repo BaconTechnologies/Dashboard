@@ -1,9 +1,10 @@
 import $ from 'jquery';
 import React from 'react';
 import ParkingZonesStore from '../stores/ParkingZonesStore.js';
+import ZonePieChart from './ZonePieChart.jsx';
 
-// const baseAPIUrl = 'http://localhost:8000';
-const baseAPIUrl = 'https://enigmatic-brushlands-35263.herokuapp.com';
+const baseAPIUrl = 'http://localhost:8000';
+// const baseAPIUrl = 'https://enigmatic-brushlands-35263.herokuapp.com';
 
 const styles = {
   toolbarBtn: {
@@ -49,97 +50,131 @@ export default class ParkingLotDashboard extends React.Component {
   }
 
   render() {
-    const { zones, places, editingPlaces, editingNewParkignZone } = this.state;
+    const { zones, places, editingPlaces, editingNewParkignZone, chartData } = this.state;
     return (
       <div>
-        <h1 className="centered">Parking Lot Dashboard</h1>
 
-        <input style={{display: "none"}} id="fileDialog" type="file" onChange={this.importCSVData} accept=".csv"/>
-        <div className="ui icon buttons" ref="toolbar">
-          <button className="ui basic blue button"
-            onClick={this.editNewParkingZone}
-            data-content="New parking zone">
-            <i className="add circle icon"></i>
-          </button>
-          <button className="ui basic yellow button"
-            style={_.extend({}, styles.toolbarBtn)}
-            onClick={this.promptForCSVFile}
-            data-content="New parking zone from csv">
-            <i className="file outline icon"></i>
-          </button>
+        <h1>Overview</h1>
+
+        <div className="ui top attached tabular menu">
+          <div className="active item"
+            ref="overviewTab"
+            style={{cursor: "pointer"}}
+            onClick={this.makeOverviewTabVisible}>
+            Overview
+          </div>
+          <div className="item"
+            ref="detailsTab"
+            style={{cursor: "pointer"}}
+            onClick={this.makeDetailsTabVisible}>
+            Details
+          </div>
         </div>
 
-        <table className="ui celled table">
-          <thead>
-            <tr>
-              <th>Zone ID</th>
-              <th>Zone Name</th>
-              <th>Availability</th>
-              <th>Capacity</th>
-              <th>Occupancy</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {editingNewParkignZone ?
-              this.renderNewParkingZoneEditor() :
-              null
-            }
-            {zones.map((z, i) => {
-              return z.id === this.state.existingParkingZoneInEdition ?
-              this.renderExistingParkingZoneEditor(z, i) :
-              this.renderParkingZoneRow(z, i)
+        <div className="ui bottom attached tab active segment" ref="overview">
+          <div className="ui two column grid">
+            {zones.map(function(z, i) {
+              return (
+                <div className="column" key={i}>
+                  <ZonePieChart zone={z} />
+                </div>
+              );
             })}
-          </tbody>
-          <tfoot>
-            <tr>
-              <th colSpan="2"><b>Totals</b></th>
-              <th>{this.getAvailabilityTotal()}</th>
-              <th>{this.getCapacityTotal()}</th>
-              <th>{this.getOccupancyTotal()}</th>
-              <th></th>
-            </tr>
-          </tfoot>
-        </table>
-
-        <h1>Places</h1>
-
-        <div className="ui icon buttons" ref="toolbar">
-          <button className="ui basic blue button"
-            onClick={this.beginEditingPlaces}
-            data-content="Edit places">
-            <i className="edit icon"></i>
-          </button>
-          <button className="ui basic yellow button"
-            onClick={this.savePlacesData}
-            style={_.extend({}, styles.toolbarBtn)}
-            data-content="Save places">
-            <i className="save icon"></i>
-          </button>
+          </div>
         </div>
 
-        <table className="ui celled table">
-          <thead>
-            <tr>
-              <th>Place</th>
-              <th>ZoneID</th>
-              <th>Category</th>
-              <th></th>
-            </tr>
-          </thead>
-          { editingPlaces ?
-            this.renderPlacesRowsEditor() :
-            this.renderPlacesRows() }
+        <div className="ui bottom attched tab segment" ref="details">
+          <h1>Parking Lot Details</h1>
+
+          <input style={{display: "none"}} id="fileDialog" type="file" onChange={this.importCSVData} accept=".csv"/>
+          <div className="ui icon buttons" ref="toolbar">
+            <button className="ui basic blue button"
+              onClick={this.editNewParkingZone}
+              data-content="New parking zone">
+              <i className="add circle icon"></i>
+            </button>
+            <button className="ui basic yellow button"
+              style={_.extend({}, styles.toolbarBtn)}
+              onClick={this.promptForCSVFile}
+              data-content="New parking zone from csv">
+              <i className="file outline icon"></i>
+            </button>
+          </div>
+
+          <table className="ui celled table">
+            <thead>
+              <tr>
+                <th>Zone ID</th>
+                <th>Zone Name</th>
+                <th>Availability</th>
+                <th>Capacity</th>
+                <th>Occupancy</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {editingNewParkignZone ?
+                this.renderNewParkingZoneEditor() :
+                null
+              }
+              {zones.map((z, i) => {
+                return z.id === this.state.existingParkingZoneInEdition ?
+                this.renderExistingParkingZoneEditor(z, i) :
+                this.renderParkingZoneRow(z, i)
+              })}
+            </tbody>
+            <tfoot>
+              <tr>
+                <th colSpan="2"><b>Totals</b></th>
+                <th>{this.getAvailabilityTotal()}</th>
+                <th>{this.getCapacityTotal()}</th>
+                <th>{this.getOccupancyTotal()}</th>
+                <th></th>
+              </tr>
+            </tfoot>
           </table>
+
+          <h1>Places</h1>
+
+          <div className="ui icon buttons" ref="toolbar">
+            <button className="ui basic blue button"
+              onClick={this.beginEditingPlaces}
+              data-content="Edit places">
+              <i className="edit icon"></i>
+            </button>
+            <button className="ui basic yellow button"
+              onClick={this.savePlacesData}
+              style={_.extend({}, styles.toolbarBtn)}
+              data-content="Save places">
+              <i className="save icon"></i>
+            </button>
+          </div>
+
+          <table className="ui celled table">
+            <thead>
+              <tr>
+                <th>Place</th>
+                <th>ZoneID</th>
+                <th>Category</th>
+                <th></th>
+              </tr>
+            </thead>
+            { editingPlaces ?
+              this.renderPlacesRowsEditor() :
+              this.renderPlacesRows() }
+            </table>
+          </div>
         </div>
       );
     }
 
     getStateFromStores = () => {
-      const { zones, places } = ParkingZonesStore.getState();
+      const { zones, places, chartData } = ParkingZonesStore.getState();
+
       return {
         zones: zones,
-        places: places
+        places: places,
+        chartData: chartData
       };
     }
 
@@ -457,53 +492,69 @@ export default class ParkingLotDashboard extends React.Component {
       } else {
         fileDisplayArea.innerText = "File not supported!"
       }
-  }
+    }
 
-  createZonesFromCSVData = (rawcsv) => {
-    let lines = rawcsv.split('\n');
-    lines.splice(lines.length - 1, 1);
-    let zonesData = {};
+    createZonesFromCSVData = (rawcsv) => {
+      let lines = rawcsv.split('\n');
+      lines.splice(lines.length - 1, 1);
+      let zonesData = {};
 
-    _.each(lines, function(line) {
-      let tokens = line.split(',');
-      let zoneID = tokens[0];
-      let parkingSpot = tokens[1];
-      let occupied = tokens[2] === 'Ocupado';
+      _.each(lines, function(line) {
+        let tokens = line.split(',');
+        let zoneID = tokens[0];
+        let parkingSpot = tokens[1];
+        let occupied = tokens[2] === 'Ocupado';
 
-      if(_.isUndefined(zonesData[zoneID])) {
-        zonesData[zoneID] = {};
-      }
-
-      const zone = zonesData[zoneID];
-
-      if (!_.isUndefined(zone.capacity)) {
-        zone.capacity += 1;
-      } else{
-        zone.capacity = 1;
-      }
-
-      if (occupied) {
-        if (_.isUndefined(zone.occupancy)) {
-          zone.occupancy = 1;
-        } else {
-          zone.occupancy += 1;
+        if(_.isUndefined(zonesData[zoneID])) {
+          zonesData[zoneID] = {};
         }
-      }
 
-      if (_.isUndefined(zone.occupancy)) {
-        zone.occupancy = 0;
-      }
+        const zone = zonesData[zoneID];
 
-      zone.name = `Zona ${zoneID}`;
-    });
+        if (!_.isUndefined(zone.capacity)) {
+          zone.capacity += 1;
+        } else{
+          zone.capacity = 1;
+        }
 
-    $.ajax({
-      method: 'PUT',
-      url: `${baseAPIUrl}/api/zone`,
-      contentType: 'application/json',
-      data: JSON.stringify(zonesData)
-    });
+        if (occupied) {
+          if (_.isUndefined(zone.occupancy)) {
+            zone.occupancy = 1;
+          } else {
+            zone.occupancy += 1;
+          }
+        }
+
+        if (_.isUndefined(zone.occupancy)) {
+          zone.occupancy = 0;
+        }
+
+        zone.name = `Zona ${zoneID}`;
+      });
+
+      $.ajax({
+        method: 'PUT',
+        url: `${baseAPIUrl}/api/zone`,
+        contentType: 'application/json',
+        data: JSON.stringify(zonesData)
+      });
+
+    }
+
+    makeOverviewTabVisible = (e) => {
+      $(this.refs.detailsTab).removeClass('active');
+      $(this.refs.details).removeClass('active');
+
+      $(this.refs.overviewTab).addClass('active');
+      $(this.refs.overview).addClass('active');
+    }
+
+    makeDetailsTabVisible = (e) => {
+      $(this.refs.overviewTab).removeClass('active');
+      $(this.refs.overview).removeClass('active');
+
+      $(this.refs.detailsTab).addClass('active');
+      $(this.refs.details).addClass('active');
+    }
 
   }
-
-}

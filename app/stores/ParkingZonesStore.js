@@ -10,6 +10,7 @@ class ParkingLotStore {
     this.zones = [];
     this.places = {};
     this.suggestedZone = null;
+    this.chartData = [];
 
     db.on('value', (snapshot) => {
       const data = snapshot.val();
@@ -19,8 +20,15 @@ class ParkingLotStore {
       });
       this.places = data.places;
       this.suggestedZone = _.find(this.zones, {id: data.suggestedZone});
+      this.chartData = _.map(this.zones, function(z) {
+        return [
+        ];
+      });
+
+      console.log(this.chartData);
       this.emitChange();
     });
+
   }
 
 }
