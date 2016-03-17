@@ -1,0 +1,2 @@
+The only purpose of this file is to disable github pages default jekyll
+behaviour since we are using another static site generator.
