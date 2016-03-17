@@ -10,7 +10,6 @@ class ParkingLotStore {
     this.zones = [];
     this.places = {};
     this.suggestedZone = null;
-    this.chartData = [];
 
     db.on('value', (snapshot) => {
       const data = snapshot.val();

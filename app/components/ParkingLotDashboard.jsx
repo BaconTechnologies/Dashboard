@@ -2,6 +2,7 @@ import $ from 'jquery';
 import React from 'react';
 import ParkingZonesStore from '../stores/ParkingZonesStore.js';
 import ZonePieChart from './ZonePieChart.jsx';
+import cn from 'classnames';
 
 // const baseAPIUrl = 'http://localhost:8000';
 const baseAPIUrl = 'https://enigmatic-brushlands-35263.herokuapp.com';
@@ -31,7 +32,8 @@ export default class ParkingLotDashboard extends React.Component {
     this.state = _.extend({}, this.getStateFromStores(), {
       editingNewParkignZone: false,
       existingParkingZoneInEdition: null,
-      editingPlaces: false
+      editingPlaces: false,
+      visibleTab: 'overview'
     });
   }
 
@@ -50,7 +52,7 @@ export default class ParkingLotDashboard extends React.Component {
   }
 
   render() {
-    const { zones, places, editingPlaces, editingNewParkignZone, chartData } = this.state;
+    const { zones, places, editingPlaces, editingNewParkignZone, chartData, visibleTab } = this.state;
     return (
       <div>
 
@@ -58,20 +60,22 @@ export default class ParkingLotDashboard extends React.Component {
 
         <div className="ui top attached tabular menu">
           <div className="active item"
+            className={cn({ 'item': true, 'active': visibleTab === 'overview'  })}
             ref="overviewTab"
             style={{cursor: "pointer"}}
-            onClick={this.makeOverviewTabVisible}>
+            onClick={_.partial(this.setVisibleTab, 'overview')}>
             Overview
           </div>
-          <div className="item"
+          <div className={cn({ 'item': true, 'active': visibleTab === 'details'})}
             ref="detailsTab"
             style={{cursor: "pointer"}}
-            onClick={this.makeDetailsTabVisible}>
+            onClick={_.partial(this.setVisibleTab, 'details')}>
             Details
           </div>
         </div>
 
-        <div className="ui bottom attached tab active segment" ref="overview">
+        <div className={cn({"ui bottom attached tab segment": true, "active": visibleTab === 'overview' })}
+          ref="overview">
           <div className="ui two column grid">
             {zones.map(function(z, i) {
               return (
@@ -83,7 +87,8 @@ export default class ParkingLotDashboard extends React.Component {
           </div>
         </div>
 
-        <div className="ui bottom attched tab segment" ref="details">
+        <div className={cn({"ui bottom attached tab segment": true, "active": visibleTab === 'details' })}
+          ref="details">
           <h1>Parking Lot Details</h1>
 
           <input style={{display: "none"}} id="fileDialog" type="file" onChange={this.importCSVData} accept=".csv"/>
@@ -541,20 +546,8 @@ export default class ParkingLotDashboard extends React.Component {
 
     }
 
-    makeOverviewTabVisible = (e) => {
-      $(this.refs.detailsTab).removeClass('active');
-      $(this.refs.details).removeClass('active');
-
-      $(this.refs.overviewTab).addClass('active');
-      $(this.refs.overview).addClass('active');
-    }
-
-    makeDetailsTabVisible = (e) => {
-      $(this.refs.overviewTab).removeClass('active');
-      $(this.refs.overview).removeClass('active');
-
-      $(this.refs.detailsTab).addClass('active');
-      $(this.refs.details).addClass('active');
+    setVisibleTab = (tabName) => {
+      this.setState({ visibleTab: tabName });
     }
 
   }
