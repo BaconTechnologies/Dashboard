@@ -1,6 +1,8 @@
 import React from 'react';
 import { Pie } from 'react-chartjs';
 
+console.log(Pie);
+
 export default class ZonePieChart extends React.Component {
 
   constructor(props) {

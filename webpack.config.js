@@ -41,6 +41,10 @@ const COMMON = {
       {
         test: /\.(png|woff|woff2|eot|ttf|svg)$/,
         loader: 'url-loader?limit=100000'
+      },
+      {
+        test: /\.json$/,
+        loader: 'json'
       }
     ]
   }
@@ -64,7 +68,7 @@ if(TARGET === 'start' || !TARGET) {
       new webpack.HotModuleReplacementPlugin(),
       new webpack.ProvidePlugin({
         $: 'jquery',
-        jQuery: 'jquery'
+        jQuery: 'jquery',
       })
     ]
   }, COMMON);

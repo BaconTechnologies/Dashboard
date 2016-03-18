@@ -1,10 +1,13 @@
 import $ from 'jquery';
 import React from 'react';
 import ParkingZonesStore from '../stores/ParkingZonesStore.js';
+import ParkingZoneActions from '../actions/ParkingZoneActions.js';
 import ZonePieChart from './ZonePieChart.jsx';
 import cn from 'classnames';
+import moment from 'moment-timezone';
+import DatePicker from 'react-datepicker';
 
-// const baseAPIUrl = 'http://localhost:8000';
+// const baseAPIUrl = 'http://localhost:8080';
 const baseAPIUrl = 'https://enigmatic-brushlands-35263.herokuapp.com';
 
 const styles = {
@@ -33,7 +36,10 @@ export default class ParkingLotDashboard extends React.Component {
       editingNewParkignZone: false,
       existingParkingZoneInEdition: null,
       editingPlaces: false,
-      visibleTab: 'overview'
+      previousVisibleTab: 'overview',
+      visibleTab: 'overview',
+      analyticsStartDate: moment(),
+      analyticsEndDate: null
     });
   }
 
@@ -53,6 +59,7 @@ export default class ParkingLotDashboard extends React.Component {
 
   render() {
     const { zones, places, editingPlaces, editingNewParkignZone, chartData, visibleTab } = this.state;
+
     return (
       <div>
 
@@ -60,7 +67,7 @@ export default class ParkingLotDashboard extends React.Component {
 
         <div className="ui top attached tabular menu">
           <div className="active item"
-            className={cn({ 'item': true, 'active': visibleTab === 'overview'  })}
+            className={cn({ 'item': true, 'active': visibleTab === 'overview' })}
             ref="overviewTab"
             style={{cursor: "pointer"}}
             onClick={_.partial(this.setVisibleTab, 'overview')}>
@@ -72,22 +79,36 @@ export default class ParkingLotDashboard extends React.Component {
             onClick={_.partial(this.setVisibleTab, 'details')}>
             Details
           </div>
+          <div className={cn({ 'item': true, 'active': visibleTab === 'analytics'})}
+            ref="detailsTab"
+            style={{cursor: "pointer"}}
+            onClick={_.partial(this.setVisibleTab, 'analytics')}>
+            Analytics
+          </div>
         </div>
 
-        <div className={cn({"ui bottom attached tab segment": true, "active": visibleTab === 'overview' })}
+        <div className={cn({'ui bottom attached tab segment': true, 'active': visibleTab === 'overview'})}
           ref="overview">
           <div className="ui two column grid">
+            <div className="column">
+              <h3><i className="stop icon" style={{color: '#F7464A'}}></i> Occupied spots</h3>
+            </div>
+            <div className="column">
+              <h3><i className="stop icon" style={{color: '#46BFBD'}}></i> Available spots</h3>
+            </div>
             {zones.map(function(z, i) {
               return (
                 <div className="column" key={i}>
-                  <ZonePieChart zone={z} />
+                  <ZonePieChart zone={z} key={_.uniqueId()} />
                 </div>
               );
             })}
           </div>
         </div>
 
-        <div className={cn({"ui bottom attached tab segment": true, "active": visibleTab === 'details' })}
+        {this.renderAnalytics()}
+
+        <div className={cn({'ui bottom attached tab segment': true, 'active': visibleTab === 'details'})}
           ref="details">
           <h1>Parking Lot Details</h1>
 
@@ -174,12 +195,13 @@ export default class ParkingLotDashboard extends React.Component {
     }
 
     getStateFromStores = () => {
-      const { zones, places, chartData } = ParkingZonesStore.getState();
+      const { zones, places, parkingHistory } = ParkingZonesStore.getState();
+
 
       return {
         zones: zones,
         places: places,
-        chartData: chartData
+        parkingHistory: parkingHistory
       };
     }
 
@@ -547,7 +569,114 @@ export default class ParkingLotDashboard extends React.Component {
     }
 
     setVisibleTab = (tabName) => {
-      this.setState({ visibleTab: tabName });
+      this.setState({
+        previousVisibleTab: this.state.visibleTab,
+        visibleTab: tabName
+      });
+    }
+
+    renderAnalytics = () => {
+      const { visibleTab, parkingHistory } = this.state;
+
+      return (
+        <div className={cn({'ui bottom attached tab segment': true, 'active': visibleTab === 'analytics'})}>
+          <h1>Analytics</h1>
+
+          <div className="ui form">
+            <div className="four fields">
+              <div className="field">
+                <label>Plate</label>
+                <input className="fluid" type="text" ref="analyticsPlate"/>
+              </div>
+              <div className="field">
+                <label>Zone</label>
+                <select className="ui fluid dropdown" ref="analyticsZone">
+                  <option value="ALL">ALL</option>
+                  {this.state.zones.map((zoneData) => {
+                    return <option key={zoneData.id} value={zoneData.id}>{zoneData.id + ' ' + zoneData.name}</option>
+                  })}
+                </select>
+              </div>
+              <div className="field">
+                <label>Entry day</label>
+                <DatePicker
+                  isClearable={true}
+                  selected={this.state.analyticsStartDate}
+                  onChange={_.partial(this.setAnalyticDate, _, 'start')}
+                  placeholderText='Any' />
+              </div>
+              <div className="field">
+                <label>Exit day</label>
+                <DatePicker
+                  isClearable={true}
+                  selected={this.state.analyticsEndDate}
+                  onChange={_.partial(this.setAnalyticDate, _, 'end')}
+                  placeholderText='Any' />
+              </div>
+            </div>
+            <button className="ui basic blue button"
+              onClick={this.filterParkingHistory}>
+              <i className="search icon"></i>
+            </button>
+          </div>
+
+          <table className="ui celled table">
+            <thead>
+              <tr>
+                <th>Plates</th>
+                <th>Zone</th>
+                <th>Entry Timestamp</th>
+                <th>Exit Timestamp</th>
+              </tr>
+            </thead>
+            <tbody>
+              { parkingHistory.map((datum, i) => {
+                return (
+                  <tr key={datum.plates + datum.entryTimestamp}>
+                    <td>{datum.plates}</td>
+                    <td>{datum.zoneId}</td>
+                    <td>{datum.entryTimestamp ? moment(datum.entryTimestamp).tz('America/Mexico_City').format('MMMM Do YYYY, h:mm:ss a') : ''}</td>
+                    <td>{datum.exitTimestamp ? moment(datum.exitTimestamp).tz('America/Mexico_City').format('MMMM Do YYYY, h:mm:ss a') : ''}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    calculateParkingTime(datum) {
+      if (datum.entryTimestamp && datum.exitTimestamp) {
+        return (datum.exitTimestamp - datum.entryTimestamp) / 60000 + ' minutes';
+      } else {
+        return ''
+      }
+    };
+
+    filterParkingHistory = () => {
+      const {analyticsStartDate, analyticsEndDate} = this.state;
+
+      const searchParams = {
+        plate: $(this.refs.analyticsPlate).val(),
+        zone: $(this.refs.analyticsZone).val(),
+        startDay: _.isNull(analyticsStartDate) ? null : analyticsStartDate.format('x'),
+        endDay: _.isNull(analyticsEndDate) ? null : analyticsEndDate.format('x')
+      };
+
+      ParkingZoneActions.filterParkingHistory(searchParams);
+    }
+
+    setAnalyticDate = (date, kind) => {
+      if (kind === 'start') {
+        this.setState({
+          analyticsStartDate: date
+        });
+      } else if (kind === 'end') {
+        this.setState({
+          analyticsEndDate: date
+        });
+      }
     }
 
   }
