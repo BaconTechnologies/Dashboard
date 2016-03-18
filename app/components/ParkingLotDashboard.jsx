@@ -28,6 +28,7 @@ function mapObject(object, callback) {
   });
 }
 
+
 export default class ParkingLotDashboard extends React.Component {
 
   constructor(props) {
@@ -46,6 +47,11 @@ export default class ParkingLotDashboard extends React.Component {
   componentDidMount() {
     ParkingZonesStore.listen(this.onStoresChange);
     this.$getAllPopups().popup();
+    const nextState = _.clone(this.state);
+    _.each(nextState.zones, function(zone) {
+      zone.key = _.uniqueId();
+    });
+    this.setState(nextState);
   }
 
   componentWillUnmount() {
@@ -98,8 +104,8 @@ export default class ParkingLotDashboard extends React.Component {
             </div>
             {zones.map(function(z, i) {
               return (
-                <div className="column" key={i}>
-                  <ZonePieChart zone={z} key={_.uniqueId()} />
+                <div className="column" key={z.id}>
+                  <ZonePieChart zone={z} key={z.key} />
                 </div>
               );
             })}
@@ -569,10 +575,20 @@ export default class ParkingLotDashboard extends React.Component {
     }
 
     setVisibleTab = (tabName) => {
-      this.setState({
-        previousVisibleTab: this.state.visibleTab,
-        visibleTab: tabName
-      });
+      if (tabName === 'overview') {
+        const nextState = _.clone(this.state);
+        nextState.previousVisibleTab = this.state.visibleTab,
+        nextState.visibleTab = 'overview';
+        _.each(nextState.zones, function(zone) {
+          zone.key = _.uniqueId();
+        });
+        this.setState(nextState);
+      } else {
+        this.setState({
+          previousVisibleTab: this.state.visibleTab,
+          visibleTab: tabName
+        });
+      }
     }
 
     renderAnalytics = () => {
