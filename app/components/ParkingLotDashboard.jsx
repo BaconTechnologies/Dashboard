@@ -530,7 +530,7 @@ export default class ParkingLotDashboard extends React.Component {
         let tokens = line.split(',');
         let zoneID = tokens[0];
         let parkingSpot = tokens[1];
-        let occupied = tokens[2] === 'Ocupado';
+        let occupied = tokens[2] == 1;
 
         if(_.isUndefined(zonesData[zoneID])) {
           zonesData[zoneID] = {};
@@ -635,8 +635,8 @@ export default class ParkingLotDashboard extends React.Component {
                   <tr key={datum.plates + datum.entryTimestamp}>
                     <td>{datum.plates}</td>
                     <td>{datum.zoneId}</td>
-                    <td>{datum.entryTimestamp ? moment(datum.entryTimestamp).tz('America/Mexico_City').format('MMMM Do YYYY, h:mm:ss a') : ''}</td>
-                    <td>{datum.exitTimestamp ? moment(datum.exitTimestamp).tz('America/Mexico_City').format('MMMM Do YYYY, h:mm:ss a') : ''}</td>
+                    <td>{datum.entryTimestamp ? moment(datum.entryTimestamp).format('MMMM Do YYYY, h:mm:ss a') : ''}</td>
+                    <td>{datum.exitTimestamp ? moment(datum.exitTimestamp).format('MMMM Do YYYY, h:mm:ss a') : ''}</td>
                   </tr>
                 );
               })}
@@ -657,12 +657,28 @@ export default class ParkingLotDashboard extends React.Component {
     filterParkingHistory = () => {
       const {analyticsStartDate, analyticsEndDate} = this.state;
 
-      const searchParams = {
-        plate: $(this.refs.analyticsPlate).val(),
-        zone: $(this.refs.analyticsZone).val(),
-        startDay: _.isNull(analyticsStartDate) ? null : analyticsStartDate.format('x'),
-        endDay: _.isNull(analyticsEndDate) ? null : analyticsEndDate.format('x')
-      };
+      const plate = $(this.refs.analyticsPlate).val();
+      const zone = $(this.refs.analyticsZone).val();
+      const startDay = _.isNull(analyticsStartDate) ? null : analyticsStartDate.format('x');
+      const endDay = _.isNull(analyticsEndDate) ? null : analyticsEndDate.format('x');
+
+      let searchParams = {};
+
+      if (!_.isUndefined(plate) && plate !== '') {
+        searchParams.plate = plate;
+      }
+
+      if (!_.isUndefined(zone) && zone !== '') {
+        searchParams.zone = zone;
+      }
+
+      if (!_.isNull(startDay)) {
+        searchParams.startDay = startDay;
+      }
+
+      if (!_.isNull(endDay)) {
+        searchParams.endDay = endDay;
+      }
 
       ParkingZoneActions.filterParkingHistory(searchParams);
     }
