@@ -19,7 +19,6 @@ class ParkingLotStore {
         pair[1].id = pair[0];
         return pair[1];
       });
-      console.log(this.zones);
       this.emitChange();
     });
 
